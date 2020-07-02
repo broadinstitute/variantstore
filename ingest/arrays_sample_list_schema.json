@@ -1,0 +1,15 @@
+[
+  {
+    "description": "[DESCRIPTION]",
+    "name": "sample_name",
+    "type": "String",
+    "mode": "Required"
+  },
+  {
+    "description": "[DESCRIPTION]",
+    "name": "sample_id",
+    "type": "Integer",
+    "mode": "Required"
+  }
+]
+
