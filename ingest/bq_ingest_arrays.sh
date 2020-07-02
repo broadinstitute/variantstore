@@ -25,7 +25,7 @@ printf -v PADDED_DIR_ID "%03d" $DIR_ID
 if [ -z $REPROCESS ]; then
   if [ $(gsutil ls $READY_DIR | wc -l) -gt 0 ]; then
     echo "moving files from ready to processing"
-    gsutil -q mv $READY_DIR* $PROCESSING_DIR
+    gsutil -q -m mv $READY_DIR* $PROCESSING_DIR
   else
     echo "no files in $READY_DIR; exiting"
     exit
@@ -89,5 +89,5 @@ else
   echo "no raw data files to process"
 fi
 echo "moving files from processing to done"
-gsutil -q mv $PROCESSING_DIR* $DONE_DIR 
+gsutil -q -m mv $PROCESSING_DIR* $DONE_DIR 
 
