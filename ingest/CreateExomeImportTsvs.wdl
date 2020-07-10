@@ -1,12 +1,12 @@
 version 1.0
 
-workflow CreateArrayImportTsvs {
+workflow CreateExomeImportTsvs {
 
   input {
     File input_vcf
-    String probe_info_table
-    String output_directory
     File sampleMap
+    File interval_list
+    String output_directory
 
     Int? preemptible_tries
     File? gatk_override
@@ -15,15 +15,16 @@ workflow CreateArrayImportTsvs {
   call CreateImportTsvs {
     input:
       input_vcf = input_vcf,
-      probe_info_table = probe_info_table,
       sampleMap = sampleMap,
+      interval_list = interval_list,
       output_directory = output_directory,
       gatk_override = gatk_override,
       preemptible_tries = preemptible_tries
   }
   output {
     File metadata_tsv = CreateImportTsvs.metadata_tsv
-    File arraydata_tsv = CreateImportTsvs.arraydata_tsv
+    File pet_tsv = CreateImportTsvs.pet_tsv
+    File vet_tsv = CreateImportTsvs.vet_tsv
   }
 }
 
@@ -31,9 +32,9 @@ workflow CreateArrayImportTsvs {
 task CreateImportTsvs {
   input {
     File input_vcf
-    String probe_info_table
-    String output_directory
     File sampleMap
+    File interval_list
+    String output_directory
 
     # runtime
     Int? preemptible_tries
@@ -43,7 +44,7 @@ task CreateImportTsvs {
   Int disk_size = ceil(size(input_vcf, "GB") * 2.5) + 20
 
   meta {
-    description: "Creates a tsv file for imort into BigQuery"
+    description: "Creates a tsv file for import into BigQuery"
   }
   parameter_meta {
     input_vcf: {
@@ -55,23 +56,24 @@ task CreateImportTsvs {
 
       export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
 
-      gatk --java-options "-Xmx2500m" ArraysIngester \
+      gatk --java-options "-Xmx2500m" CreateVariantIngestFiles \
         -V ~{input_vcf} \
-        --probe-info ~{probe_info_table} \
         -SNM ~{sampleMap} \
-        --ref-version 37
-        
-      gsutil cp *.tsv ~{output_directory}/1/ready/
+        -L ~{interval_list} \
+        --ref-version 38
+
+        gsutil cp *.tsv ~{output_directory}/ready/
   >>>
   runtime {
       docker: "us.gcr.io/broad-gatk/gatk:4.1.7.0"
-      memory: "4 GB"
+      memory: "5 GB"
       disks: "local-disk " + disk_size + " HDD"
       preemptible: select_first([preemptible_tries, 5])
       cpu: 2
   }
   output {
-      File metadata_tsv = glob("metadata_*.tsv")[0]
-      File arraydata_tsv = glob("raw_*.tsv")[0] 
+      File pet_tsv = glob("pet_*.tsv")[0]
+      File vet_tsv = glob("vet_*.tsv")[0] 
+      File metadata_tsv = glob("metadata_*.tsv")[0] 
   }
 }
