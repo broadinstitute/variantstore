@@ -7,8 +7,8 @@
  },
  {
    "description": "[DESCRIPTION]",
-   "name": "sample",
-   "type": "String",
+   "name": "sample_id",
+   "type": "Integer",
    "mode": "Required"
  },
  {
