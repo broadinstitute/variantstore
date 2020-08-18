@@ -1,0 +1,10 @@
+[
+ { "name": "sample", "type": "Integer", "mode": "Required", "description": "[DESCRIPTION]" },
+ { "name": "chrom", "type": "String", "mode": "Required", "description": "[DESCRIPTION]" },
+ { "name": "position", "type": "Integer", "mode": "Required", "description": "[DESCRIPTION]" },
+ { "name": "GT", "type": "String", "mode": "Required", "description": "[DESCRIPTION]" },
+ { "name": "DS", "type": "Float", "mode": "Required", "description": "[DESCRIPTION]" },
+ { "name": "GP1", "type": "Float", "mode": "Nullable", "description": "[DESCRIPTION]" },
+ { "name": "GP2", "type": "Float", "mode": "Nullable", "description": "[DESCRIPTION]" },
+ { "name": "GP3", "type": "Float", "mode": "Nullable", "description": "[DESCRIPTION]" }
+]

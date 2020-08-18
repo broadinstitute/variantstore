@@ -1,0 +1,6 @@
+{
+"CreateImputedTsvs.gatk_override":"gs://broad-dsp-spec-ops/scratch/andrea/gatk-imputation.jar",
+"CreateImputedTsvs.imputed_vcf":"gs://broad-dsp-spec-ops/scratch/andrea/AoU/arrays/imputation/broad_imputation.vcf.gz",
+"CreateImputedTsvs.imputed_vcf_index":"gs://broad-dsp-spec-ops/scratch/andrea/AoU/arrays/imputation/broad_imputation.vcf.gz.tbi",
+"CreateImputedTsvs.sample_list_table":"spec-ops-aou.AoU_arrays.sample_list"
+}
