@@ -11,6 +11,8 @@ The dataset will be created if it doesn't exist. The table should not exist or d
 ### Array Data
 There are several steps to ingest the vcf array data into BigQuery.
 
+To get around BigQuery query limits, you should extract the probe_info table to a csv file in a google bucket. It will be used as input to the array ingest command.
+
 
 Assign a sequential integer id for each sample. If you want to process several samples, you can ceate a csv file where the first column is the integer id and the second column is the sample name. For example:
 
@@ -20,21 +22,24 @@ Assign a sequential integer id for each sample. If you want to process several s
 
 Run the gatk ingest tool to convert the vcf file to 2 tsv files: one for the sample mapping and one for the array data. 
 
-	./gatk CreateArrayIngestFiles -V <input-vcf> --probe-info <fully-qualified-probe-info-table> --ref-version 37
+	./gatk CreateArrayIngestFiles -V <input-vcf> --probe-info-table <gs-location-of-probe-info-export> --use-compressed-data true --ref-version 37
 
-Copy the resulting tsv files to a google bucket for upload under a subdirectory number that represents the NNN table it will be loaded into `((sample_id-1)/4000)+1` and a subdirectory of that named "ready". For example, if you just ran the tool for sample_id 4001:
+Copy the resulting tsv files to a google bucket for upload 
 
-	gsutil cp <output-of-gatk-command>*.tsv gs://broad-dsp-spec-ops/scratch/import/2/ready
+	gsutil cp <output-of-gatk-command>*.tsv gs://broad-dsp-spec-ops/scratch/import/
 
 Both of these steps (the gatk tool and the copy of the files) can be accomplished by running the CreateArrayImportTsvs.wdl script.
 
-Run the bq ingest script for array data. This script will move the files from the "ready" directory to the "processing" directory, then import from the processing directory, then move the files to the "done" directory. This way the tool can be run to import while data is still being generated and put into the ready directory. Use the `--reprocess` flag if importing fails and you want to re-run the tool to import only the data already in the "processing" directory (without moving new files from the "ready" directory). It is important not to reload the same file more than once!
+Run the bq ingest script for array data. This script will import the metadata and sample files for the table specified and then move the files to a "done" subdirectory.
 
-	./bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <start-directory-id> [--reprocess]
+	./bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <table-number>
 	
 For example:
 
 	./bq_ingest_arrays.sh spec-ops-aou aou_arrays_test gs://broad-dsp-spec-ops/scratch/import 2
 
+_**WARNING**_ 
+
+It is important that new files are not being added to this directory during this process or they might be moved to the done directory without being processed. It is important not to reload the same file more than once or you will get duplicate entries in the database. 
 
 
