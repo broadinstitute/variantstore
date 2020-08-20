@@ -4,7 +4,8 @@ workflow CreateArrayImportTsvs {
 
   input {
     File input_vcf
-    String probe_info_table
+    String? probe_info_table
+    String? probe_info_file
     String output_directory
     File sampleMap
 
@@ -16,6 +17,7 @@ workflow CreateArrayImportTsvs {
     input:
       input_vcf = input_vcf,
       probe_info_table = probe_info_table,
+      probe_info_file = probe_info_file,
       sampleMap = sampleMap,
       output_directory = output_directory,
       gatk_override = gatk_override,
@@ -31,7 +33,8 @@ workflow CreateArrayImportTsvs {
 task CreateImportTsvs {
   input {
     File input_vcf
-    String probe_info_table
+    String? probe_info_table
+    String? probe_info_file
     String output_directory
     File sampleMap
 
@@ -55,13 +58,14 @@ task CreateImportTsvs {
 
       export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
 
-      gatk --java-options "-Xmx2500m" ArraysIngester \
+      gatk --java-options "-Xmx2500m" CreateArrayIngestFiles \
         -V ~{input_vcf} \
-        --probe-info ~{probe_info_table} \
+        ~{"--probe-info-file " + probe_info_file} \
+        ~{"--probe-info-table " + probe_info_table} \
         -SNM ~{sampleMap} \
         --ref-version 37
         
-      gsutil cp *.tsv ~{output_directory}/1/ready/
+      gsutil cp *.tsv ~{output_directory}
   >>>
   runtime {
       docker: "us.gcr.io/broad-gatk/gatk:4.1.7.0"

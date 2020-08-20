@@ -1,6 +1,6 @@
 {
-"CreateArrayImportTsvs.gatk_override":"gs://broad-dsp-spec-ops/scratch/andrea/gatk-array-ingest.jar",
-"CreateArrayImportTsvs.input_vcf":"gs://broad-dsp-spec-ops/scratch/andrea/AoU/arrays/204126160095_R01C01.vcf.gz",
-"CreateArrayImportTsvs.probe_info_table":"broad-dsp-spec-ops.andrea_test.probe_info",
-"CreateArrayImportTsvs.sampleMap":"gs://broad-dsp-spec-ops/scratch/andrea/arrays/sampleMap.txt"
+"CreateArrayImportTsvs.gatk_override":"gs://broad-dsp-spec-ops/scratch/andrea/gatk-imputation.jar",
+"CreateArrayImportTsvs.input_vcf":"gs://broad-andrea-private/AoU/arrays/204126160095_R01C01.vcf.gz",
+"CreateArrayImportTsvs.probe_info_file":"gs://broad-andrea-private/AoU/arrays/GDA-8v1-0_A1.csv",
+"CreateArrayImportTsvs.sampleMap":"gs://broad-andrea-private/arrays/sampleMap.txt"
 }
