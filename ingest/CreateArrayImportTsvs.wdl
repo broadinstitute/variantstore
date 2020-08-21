@@ -4,10 +4,11 @@ workflow CreateArrayImportTsvs {
 
   input {
     File input_vcf
-    String? probe_info_table
-    String? probe_info_file
+    File? probe_info_table
+    File? probe_info_file
     String output_directory
     File sampleMap
+    Boolean use_compressed_data = false
 
     Int? preemptible_tries
     File? gatk_override
@@ -20,6 +21,7 @@ workflow CreateArrayImportTsvs {
       probe_info_file = probe_info_file,
       sampleMap = sampleMap,
       output_directory = output_directory,
+      use_compressed_data = use_compressed_data,
       gatk_override = gatk_override,
       preemptible_tries = preemptible_tries
   }
@@ -33,10 +35,11 @@ workflow CreateArrayImportTsvs {
 task CreateImportTsvs {
   input {
     File input_vcf
-    String? probe_info_table
-    String? probe_info_file
+    File? probe_info_table
+    File? probe_info_file
     String output_directory
     File sampleMap
+    Boolean use_compressed_data
 
     # runtime
     Int? preemptible_tries
@@ -63,6 +66,7 @@ task CreateImportTsvs {
         ~{"--probe-info-file " + probe_info_file} \
         ~{"--probe-info-table " + probe_info_table} \
         -SNM ~{sampleMap} \
+        ~{true="--use-compressed-data" false="" use_compressed_data} \
         --ref-version 37
         
       gsutil cp *.tsv ~{output_directory}

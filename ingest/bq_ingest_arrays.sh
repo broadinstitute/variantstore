@@ -2,7 +2,7 @@
 set -e
 
 if [ $# -lt 4 ]; then
-  echo "usage: $0 <project-id> <dataset-name> <storage-location> <table-id>"
+  echo "usage: $0 <project-id> <dataset-name> <storage-location> <table-id> [--compressed]"
   exit 1
 fi
 
@@ -13,9 +13,22 @@ DIR_ID=$4
 PROCESSING_DIR=$STORAGE_LOCATION/$DIR_ID/
 DONE_DIR=$STORAGE_LOCATION/$DIR_ID/done/
 
+if [ $# -eq 5 -a "$5" = "--compressed" ]; then
+  COMPRESSED=true
+fi
 
-let PARTITION_START=($DIR_ID-1)*4000+1
-let PARTITION_END=$PARTITION_START+3999
+if [ $COMPRESSED ]; then
+  let "PARTITION_START=(($DIR_ID-1)*4000+1)<<32"
+  let "PARTITION_END=$PARTITION_START+(3999<<32)"
+  let "PARTITION_STEP=1<<32"
+  PARTITION_FIELD="basic_array_data"
+else
+  let "PARTITION_START=($DIR_ID-1)*4000+1"
+  let "PARTITION_END=$PARTITION_START+3999"
+  let "PARTITION_STEP=1"
+  PARTITION_FIELD="sample_id"
+fi
+
 printf -v PADDED_DIR_ID "%03d" $DIR_ID
 
 
@@ -31,7 +44,11 @@ RAW_DIR_FILES="raw_${PADDED_DIR_ID}_*"
 METADATA_FILES="metadata_${PADDED_DIR_ID}_*"
 
 # schema and TSV header need to be the same order
-RAW_SCHEMA="raw_array_schema.json"
+if [ $COMPRESSED ]; then
+  RAW_SCHEMA="raw_compressed_array_schema.json"
+else
+  RAW_SCHEMA="raw_uncompressed_array_schema.json"
+fi
 SAMPLE_LIST_SCHEMA="arrays_sample_list_schema.json"
 
 # create a metadata table and load
@@ -66,7 +83,7 @@ if [ $NUM_RAW_FILES -gt 0 ]; then
   set -e
   if [ $? -ne 0 ]; then
     echo "making table $TABLE"
-    bq --location=US mk --range_partitioning=sample_id,$PARTITION_START,$PARTITION_END,1 \
+    bq --location=US mk --range_partitioning=$PARTITION_FIELD,$PARTITION_START,$PARTITION_END,$PARTITION_STEP \
       --project_id=$PROJECT_ID $TABLE $RAW_SCHEMA
   fi
   bq load --location=US --project_id=$PROJECT_ID --skip_leading_rows=1 --null_marker="null" --source_format=CSV -F "\t" $TABLE $PROCESSING_DIR$RAW_DIR_FILES $RAW_SCHEMA
@@ -75,5 +92,5 @@ else
   echo "no raw data files to process"
 fi
 echo "moving files from processing to done"
-gsutil -q -m mv $PROCESSING_DIR$METADATA_FILES $DONE_DIR 
-gsutil -q -m mv $PROCESSING_DIR$RAW_FILES $DONE_DIR 
+gsutil -q -m mv $PROCESSING_DIR$METADATA_FILES $DONE_DIR
+gsutil -q -m mv $PROCESSING_DIR$RAW_FILES $DONE_DIR
