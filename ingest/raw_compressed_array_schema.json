@@ -3,12 +3,12 @@
    "description": "[DESCRIPTION]",
    "name": "basic_array_data",
    "type": "Integer",
-   "mode": "Nullable"
+   "mode": "Required"
  },
  {
    "description": "[DESCRIPTION]",
    "name": "raw_array_data",
    "type": "Integer",
-   "mode": "Nullable"
+   "mode": "Required"
  }
 ]
