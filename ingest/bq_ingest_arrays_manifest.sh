@@ -16,7 +16,7 @@ TMP_PROC="/tmp/manifest_ingest_processed.csv"
 TMP="/tmp/manifest_ingest.csv"
 
 sed 's/,X,/,23X,/g; s/,Y,/,24Y,/g; s/,MT,/,25MT,/g' $MANIFEST_FILE > $TMP_SUB
-sort -t , -k 23n,23 -k24n,24 $TMP_SUB > $TMP_SORTED
+sort -t , -k23n,23 -k24n,24 -k2n,2 $TMP_SUB > $TMP_SORTED
 # checking for != "build37Flag" skips the header row (we don't want that numbered)
 awk -F ',' 'NF==29 && ($29!="ILLUMINA_FLAGGED" && $29!="INDEL_NOT_MATCHED" && $29!="INDEL_CONFLICT" && $29!="build37Flag") { flag=$29; if ($29=="PASS") flag=""; print id++","$2","$9","$23","$24","$25","$26","$27","flag }' $TMP_SORTED > $TMP_PROC
 sed 's/,23X,/,X,/g; s/,24Y,/,Y,/g; s/,25MT,/,MT,/g' $TMP_PROC > $TMP
