@@ -18,6 +18,9 @@ reference="/Users/kcibul/seq/references//hg19/v0/Homo_sapiens_assembly19.fasta"
 # cloud/bigquery versions
 PROBE_INFO_CLAUSE="--probe-info-table ${probe_info_table} "
 
+#PROBE_RANGE_CLAUSE="--min-probe-id 10 --max-probe-id 10"
+PROBE_RANGE_CLAUSE=""
+
 #DEBUG_CLAUSE="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
 DEBUG_CLAUSE=""
 
@@ -31,4 +34,5 @@ $GATK_HOME/gatk --java-options "-Xmx4g $DEBUG_CLAUSE" ArrayExtractCohort \
   --use-compressed-data "false" \
   --cohort-extract-table "${cohort_table}" \
   --local-sort-max-records-in-ram "${local_sort_max_records_in_ram}" \
+  ${PROBE_RANGE_CLAUSE} \
   --project-id "${project_id}"
