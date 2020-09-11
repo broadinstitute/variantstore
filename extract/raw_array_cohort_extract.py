@@ -95,12 +95,12 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_gen
   for i in range(1, RAW_ARRAY_TABLE_COUNT+1):
     partition_samples = get_samples_for_partition(cohort, i)
 
-    fq_vet_table = f"{fq_dataset}.{RAW_ARRAY_TABLE_PREFIX}{i:03}"
+    fq_array_table = f"{fq_dataset}.{RAW_ARRAY_TABLE_PREFIX}{i:03}"
     if len(partition_samples) > 0:
       j = 1
       for samples in split_lists(partition_samples, 1000):
         id = f"{i}_{j}"
-        subs[id] = get_subselect(fq_vet_table, samples, id, extract_genotype_counts_only)
+        subs[id] = get_subselect(fq_array_table, samples, id, extract_genotype_counts_only)
         j = j + 1
 
   # ref vs alt allele doesn't matter for HWE or call rate
