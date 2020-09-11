@@ -23,7 +23,7 @@ sort -t , -k23n,23 -k24n,24 -k2,2 $TMP_SUB > $TMP_SORTED
 
 # checking for != "build37Flag" skips the header row (we don't want that numbered)
 # only process rows with 29 fields - this skips some header info fields
-# also skip entries that are flaggeg, not matched or have index conflict
+# also skip entries that are flagged, not matched or have index conflict
 awk -F ',' 'NF==29 && ($29!="ILLUMINA_FLAGGED" && $29!="INDEL_NOT_MATCHED" && $29!="INDEL_CONFLICT" && $29!="build37Flag") { flag=$29; if ($29=="PASS") flag=""; print id++","$2","$9","$23","$24","$25","$26","$27","flag }' $TMP_SORTED > $TMP_PROC
 
 # remove the integer prefixes for chromosomes X, Y and MT
