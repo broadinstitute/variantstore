@@ -7,18 +7,6 @@
  },
  {
    "description": "[DESCRIPTION]",
-   "name": "basic_array_data",
-   "type": "Integer",
-   "mode": "Nullable"
- },
- {
-   "description": "[DESCRIPTION]",
-   "name": "raw_array_data",
-   "type": "Integer",
-   "mode": "Nullable"
- },
- {
-   "description": "[DESCRIPTION]",
    "name": "probe_id",
    "type": "Integer",
    "mode": "Required"
