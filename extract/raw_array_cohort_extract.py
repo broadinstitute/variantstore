@@ -84,10 +84,11 @@ def get_all_samples(fq_cohort_sample_mapping_table):
   cohort.sort()
   return cohort
 
-def populate_extract_table(fq_dataset, cohort, fq_destination_table):
-  def get_subselect(fq_array_table, samples, id):
+def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_genotype_counts_only):
+  def get_subselect(fq_array_table, samples, id, extract_genotype_counts_only):
+    fields_to_extract = "sample_id, probe_id, GT_encoded" if extract_genotype_counts_only else "sample_id, probe_id, GT_encoded, NORMX, NORMY, BAF, LRR"
     sample_stanza = ','.join([str(s) for s in samples])
-    sql = f"    q_{id} AS (SELECT sample_id, probe_id, GT_encoded, NORMX, NORMY, BAF, LRR from `{fq_array_table}` WHERE sample_id IN ({sample_stanza})), "
+    sql = f"    q_{id} AS (SELECT {fields_to_extract} from `{fq_array_table}` WHERE sample_id IN ({sample_stanza})), "
     return sql
    
   subs = {}
@@ -99,18 +100,29 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table):
       j = 1
       for samples in split_lists(partition_samples, 1000):
         id = f"{i}_{j}"
-        subs[id] = get_subselect(fq_vet_table, samples, id)
+        subs[id] = get_subselect(fq_vet_table, samples, id, extract_genotype_counts_only)
         j = j + 1
+
+  # hom ref vs hom var doesn't matter for HWE or call rate
+  select_sql = (
+                f" (SELECT probe_id, " +
+                f"COUNT(IF(GT_encoded LIKE 'AA', Sample_id, null)) hom_ref, \n" +
+                f"COUNT(IF(GT_encoded LIKE 'AB', Sample_id, null)) het, \n" +
+                f"COUNT(IF(GT_encoded LIKE 'BB', Sample_id, null)) hom_var, \n" +
+                f"COUNT(IF(GT_encoded LIKE '.', Sample_id, null)) no_call \n" +
+                f"FROM q_all \n" +
+                f"GROUP BY probe_id)"
+  ) if extract_genotype_counts_only else f" (SELECT * FROM q_all)"
 
   sql = (
         f"CREATE OR REPLACE TABLE `{fq_destination_table}` \n"
         f"PARTITION BY RANGE_BUCKET(probe_id, GENERATE_ARRAY(0, {MAX_PROBE_ID}, {PROBES_PER_PARTITION})) \n"
         f"{FINAL_TABLE_TTL} "
-        f"AS \n" + \
-        f"with\n" + \
-        ("\n".join(subs.values())) + "\n" \
-        "q_all AS (" + (" union all ".join([ f"(SELECT * FROM q_{id})" for id in subs.keys()]))  + ")\n" + \
-        f" (SELECT * FROM q_all)"
+        f"AS \n" +
+        f"with\n" +
+        ("\n".join(subs.values())) + "\n"
+        "q_all AS (" + (" union all ".join([ f"(SELECT * FROM q_{id})" for id in subs.keys()])) + ")\n" +
+        f"{select_sql}"
         )
 
   print(sql) 
@@ -122,7 +134,8 @@ def do_extract(fq_dataset,
                max_tables,
                query_project,
                fq_destination_table,
-               fq_cohort_sample_mapping_table
+               fq_cohort_sample_mapping_table,
+               extract_genotype_counts_only
               ):
   try:  
     global client
@@ -136,7 +149,7 @@ def do_extract(fq_dataset,
     cohort = get_all_samples(fq_cohort_sample_mapping_table)
     print(f"Discovered {len(cohort)} samples in {fq_cohort_sample_mapping_table}...")
 
-    populate_extract_table(fq_dataset, cohort, fq_destination_table)
+    populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_genotype_counts_only)
 
   except Exception as err:
     print(err)
@@ -152,6 +165,7 @@ if __name__ == '__main__':
   parser.add_argument('--query_project',type=str, help='Google project where query should be executed', required=True)
   parser.add_argument('--fq_cohort_sample_mapping_table',type=str, help='Mapping table from sample_id to sample_name for the extracted cohort', required=True)
   parser.add_argument('--max_tables',type=int, help='Maximum number of array_xxx tables to consider', required=False, default=250)
+  parser.add_argument('--extract_genotype_counts_only', type=bool, help='Extract only genoype counts for QC metric calculations', required=False, default=False)
 
   # Execute the parse_args() method
   args = parser.parse_args()
@@ -160,4 +174,5 @@ if __name__ == '__main__':
              args.max_tables,
              args.query_project,
              args.fq_destination_table,
-             args.fq_cohort_sample_mapping_table)
+             args.fq_cohort_sample_mapping_table,
+             args.extract_genotype_counts_only)
