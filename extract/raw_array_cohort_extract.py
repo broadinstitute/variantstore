@@ -103,7 +103,7 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_gen
         subs[id] = get_subselect(fq_vet_table, samples, id, extract_genotype_counts_only)
         j = j + 1
 
-  # hom ref vs hom var doesn't matter for HWE or call rate
+  # ref vs alt allele doesn't matter for HWE or call rate
   select_sql = (
                 f" (SELECT probe_id, " +
                 f"COUNT(IF(GT_encoded LIKE 'AA', Sample_id, null)) hom_ref, \n" +
