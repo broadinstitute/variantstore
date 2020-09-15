@@ -2,7 +2,7 @@
   {
     "description": "[DESCRIPTION]",
     "name": "probe_id",
-    "type": "String",
+    "type": "Integer",
     "mode": "Required"
   },
   {
