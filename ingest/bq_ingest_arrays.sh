@@ -29,7 +29,7 @@ if [ $NUM_RAW_FILES -eq 0 -a $NUM_METADATA_FILES -eq 0 ]; then
 fi
 
 # schema and TSV header need to be the same order
-RAW_SCHEMA="raw_uncompressed_array_schema.json"
+RAW_SCHEMA="raw_array_schema.json"
 SAMPLE_LIST_SCHEMA="arrays_sample_list_schema.json"
 
 # create a metadata table and load
