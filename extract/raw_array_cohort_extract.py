@@ -98,12 +98,15 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_gen
     fq_array_table = f"{fq_dataset}.{RAW_ARRAY_TABLE_PREFIX}{i:03}"
     if len(partition_samples) > 0:
       j = 1
+      # subset the query to 1000 samples because if you have more than that BigQuery doesn't optimize the query correctly
+      # TODO: test the 1000 items in a list limit, maybe BigQuery has fixed this by now
       for samples in split_lists(partition_samples, 1000):
         id = f"{i}_{j}"
         subs[id] = get_subselect(fq_array_table, samples, id, extract_genotype_counts_only)
         j = j + 1
 
   # ref vs alt allele doesn't matter for HWE or call rate
+  # TODO: make genotype flexible to older encodings
   select_sql = (
                 f" (SELECT probe_id, " +
                 f"COUNT(IF(GT_encoded LIKE 'AA', Sample_id, null)) hom_ref, \n" +
