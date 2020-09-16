@@ -30,7 +30,7 @@ Copy the resulting tsv files to a google bucket for upload
 
 Both of these steps (the gatk tool and the copy of the files) can be accomplished by running the CreateArrayImportTsvs.wdl script.
 
-Run the bq ingest script for array data. This script will import the metadata and sample files for the table specified and then move the files to a "done" subdirectory.
+Run the bq ingest script for array data. This script will import the sample and raw array data files for the table specified and then move the files to a "done" subdirectory.
 
 	./bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <table-number>
 	
