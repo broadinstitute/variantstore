@@ -9,12 +9,15 @@ workflow RawArrayCohortExtract {
         File reference_index
         File reference_dict
     
+        String? fq_probe_info_table
+        File? probe_info_file
+        
         String fq_dataset
         Int max_tables
         String fq_destination_dataset
         String query_project
         String fq_cohort_mapping_table
-        Int ttl
+        Int ttl = 24
         
         String output_file_base_name
         
@@ -40,7 +43,8 @@ workflow RawArrayCohortExtract {
                 reference             = reference,
                 reference_index       = reference_index,
                 reference_dict        = reference_dict,
-                probe_info_clause     = "--probe-info-table spec-ops-aou.aou_pmi_synthetic_100k.probe_info",
+                fq_probe_info_table   = fq_probe_info_table,
+                probe_info_file       = probe_info_file,
                 min_probe_id          = 1 + i * probes_per_partition,
                 max_probe_id          = (i+1) * probes_per_partition,
                 sample_info_table     = full_sample_info_table,
@@ -133,7 +137,10 @@ task ExtractTask {
         File reference_index
         File reference_dict
     
-        String probe_info_clause
+        String? fq_probe_info_table 
+        File? probe_info_file
+        String probe_info_clause = if defined(probe_info_file) then "--probe-info-csv ${probe_info_file}" else "--probe-info-table ${fq_probe_info_table}"
+
         Int min_probe_id
         Int max_probe_id
         String sample_info_table
