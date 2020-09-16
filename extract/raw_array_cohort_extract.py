@@ -17,12 +17,6 @@ JOB_IDS = set()
 RAW_ARRAY_TABLE_PREFIX = "arrays_"
 SAMPLES_PER_PARTITION = 4000
 
-MAX_PROBE_ID = 2000000
-PROBES_PER_PARTITION = 100000 # 20 partitions
-
-FINAL_TABLE_TTL = ""
-#FINAL_TABLE_TTL = " OPTIONS( expiration_timestamp=TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL 72 HOUR)) "
-
 RAW_ARRAY_TABLE_COUNT = -1
 client = None
 
@@ -46,7 +40,7 @@ def execute_with_retry(label, sql):
   retry_delay = [30, 60, 90] # 3 retries with incremental backoff
 
   start = time.time()
-  while len(retry_delay) > 0:
+  while True:
     try:
       query = client.query(sql)
       print(f"STARTING - {label}")
@@ -58,12 +52,13 @@ def execute_with_retry(label, sql):
 
       # if there are no retries left... raise
       if (len(retry_delay) == 0):
+        print(f"Error {err} running query {label}, but no retries left.  RAISING!")
         raise err
       else:
         t = retry_delay.pop(0)
         print(f"Error {err} running query {label}, sleeping for {t}")
         time.sleep(t)
-
+  
 def get_partition_range(i):
   if i < 1 or i > RAW_ARRAY_TABLE_COUNT:
     raise ValueError(f"out of partition range")
@@ -84,7 +79,7 @@ def get_all_samples(fq_cohort_sample_mapping_table):
   cohort.sort()
   return cohort
 
-def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_genotype_counts_only):
+def populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number_of_partitions, probes_per_partition, extract_genotype_counts_only):
   def get_subselect(fq_array_table, samples, id, extract_genotype_counts_only):
     fields_to_extract = "sample_id, probe_id, GT_encoded" if extract_genotype_counts_only else "sample_id, probe_id, GT_encoded, NORMX, NORMY, BAF, LRR"
     sample_stanza = ','.join([str(s) for s in samples])
@@ -119,8 +114,8 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_gen
 
   sql = (
         f"CREATE OR REPLACE TABLE `{fq_destination_table}` \n"
-        f"PARTITION BY RANGE_BUCKET(probe_id, GENERATE_ARRAY(0, {MAX_PROBE_ID}, {PROBES_PER_PARTITION})) \n"
-        f"{FINAL_TABLE_TTL} "
+        f"PARTITION BY RANGE_BUCKET(probe_id, GENERATE_ARRAY(0, {number_of_partitions * probes_per_partition}, {probes_per_partition})) \n"
+        f"OPTIONS( expiration_timestamp=TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL {ttl} HOUR)) "
         f"AS \n" +
         f"with\n" +
         ("\n".join(subs.values())) + "\n"
@@ -138,6 +133,9 @@ def do_extract(fq_dataset,
                query_project,
                fq_destination_table,
                fq_cohort_sample_mapping_table,
+               ttl,
+               number_of_partitions,
+               probes_per_partition,
                extract_genotype_counts_only
               ):
   try:  
@@ -152,13 +150,14 @@ def do_extract(fq_dataset,
     cohort = get_all_samples(fq_cohort_sample_mapping_table)
     print(f"Discovered {len(cohort)} samples in {fq_cohort_sample_mapping_table}...")
 
-    populate_extract_table(fq_dataset, cohort, fq_destination_table, extract_genotype_counts_only)
+    populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number_of_partitions, probes_per_partition, extract_genotype_counts_only)
 
+    print(f"\nFinal cohort extract written to {fq_destination_table}\n")
   except Exception as err:
-    print(err)
-
-  dump_job_stats()
-  print(f"\nFinal cohort extract written to {fq_destination_table}\n")
+      print(f"Unexpected error! {err}")
+      raise
+  finally:
+      dump_job_stats()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(allow_abbrev=False, description='Extract a raw array cohort from BigQuery Variant Store ')
@@ -168,6 +167,9 @@ if __name__ == '__main__':
   parser.add_argument('--query_project',type=str, help='Google project where query should be executed', required=True)
   parser.add_argument('--fq_cohort_sample_mapping_table',type=str, help='Mapping table from sample_id to sample_name for the extracted cohort', required=True)
   parser.add_argument('--max_tables',type=int, help='Maximum number of array_xxx tables to consider', required=False, default=250)
+  parser.add_argument('--ttl',type=int, help='how long should the destination table be kept before expiring (in hours)', required=False, default=24)
+  parser.add_argument('--number_of_partitions',type=int, help='how many partitions to create', required=False, default=1)
+  parser.add_argument('--probes_per_partition',type=int, help='how many probes in each partition', required=False, default=2000000)
   parser.add_argument('--extract_genotype_counts_only', type=bool, help='Extract only genoype counts for QC metric calculations', required=False, default=False)
 
   # Execute the parse_args() method
@@ -178,4 +180,8 @@ if __name__ == '__main__':
              args.query_project,
              args.fq_destination_table,
              args.fq_cohort_sample_mapping_table,
+             args.ttl,
+             args.number_of_partitions, 
+             args.probes_per_partition,
              args.extract_genotype_counts_only)
+             

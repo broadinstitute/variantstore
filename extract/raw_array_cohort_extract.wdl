@@ -1,0 +1,234 @@
+version 1.0
+
+workflow RawArrayCohortExtract {
+   input {
+        Int number_of_partitions = 2
+        Int probes_per_partition = 1000000
+        
+        File reference
+        File reference_index
+        File reference_dict
+    
+        String? fq_probe_info_table
+        File? probe_info_file
+        
+        String fq_dataset
+        Int max_tables
+        String fq_destination_dataset
+        String query_project
+        String fq_cohort_mapping_table
+        Int ttl = 24
+        
+        String output_file_base_name
+        
+        String full_sample_info_table
+    }
+    
+    call CreateExtractTable {
+        input:
+            fq_dataset                = fq_dataset,
+            max_tables                = max_tables,
+            fq_destination_dataset    = fq_destination_dataset,
+            query_project             = query_project,
+            fq_cohort_mapping_table   = fq_cohort_mapping_table,
+            ttl                       = ttl,
+            number_of_partitions      = number_of_partitions,
+            probes_per_partition      = probes_per_partition
+    }
+  
+    
+    scatter(i in range(number_of_partitions)) {
+        call ExtractTask {
+            input:
+                reference             = reference,
+                reference_index       = reference_index,
+                reference_dict        = reference_dict,
+                fq_probe_info_table   = fq_probe_info_table,
+                probe_info_file       = probe_info_file,
+                min_probe_id          = 1 + i * probes_per_partition,
+                max_probe_id          = (i+1) * probes_per_partition,
+                sample_info_table     = full_sample_info_table,
+                use_compressed_data   = "false",
+                cohort_extract_table  = CreateExtractTable.cohort_extract_table,
+                project_id            = query_project,
+                output_file           = "${output_file_base_name}_${i}.vcf.gz"
+        }
+    }
+
+    call MergeVCFs { 
+       input:
+           input_vcfs = ExtractTask.output_vcf,
+           input_vcfs_indexes = ExtractTask.output_vcf_index,
+           output_vcf_name = "${output_file_base_name}.vcf.gz",
+           preemptible_tries = 3
+    }
+    
+    output {
+        File output_vcf = MergeVCFs.output_vcf
+        File output_vcf_idx = MergeVCFs.output_vcf_index
+    }
+}
+
+################################################################################
+task CreateExtractTable {
+    # indicates that this task should NOT be call cached
+    meta {
+       volatile: true
+    }
+
+    # ------------------------------------------------
+    # Input args:
+    input {
+        String fq_dataset
+        Int max_tables
+        String fq_destination_dataset
+        String query_project
+        String fq_cohort_mapping_table
+        Int ttl
+        Int number_of_partitions
+        Int probes_per_partition
+    }
+
+    # ------------------------------------------------
+    # Run our command:
+    command <<<
+        set -e
+
+        uuid=$(cat /proc/sys/kernel/random/uuid | sed s/-/_/g)
+        export_table="~{fq_destination_dataset}.${uuid}"
+        echo "Exporting to ${export_table}"
+        
+        python /app/raw_array_cohort_extract.py \
+          --dataset ~{fq_dataset} \
+          --max_tables ~{max_tables} \
+          --fq_destination_table ${export_table} \
+          --query_project ~{query_project} \
+          --fq_cohort_sample_mapping_table ~{fq_cohort_mapping_table} \
+          --ttl ~{ttl} \
+          --number_of_partitions ~{number_of_partitions} \
+          --probes_per_partition ~{probes_per_partition}
+          
+        echo ${export_table} > cohort_extract_table.txt
+
+    >>>
+
+    # ------------------------------------------------
+    # Runtime settings:
+    runtime {
+        docker: "kcibul/variantstore-export:latest"
+        memory: "3 GB"
+        disks: "local-disk 10 HDD"
+        bootDiskSizeGb: 15
+        preemptible: 0
+        cpu: 1
+    }
+
+    # Outputs:
+    output {
+        String cohort_extract_table = read_string("cohort_extract_table.txt")
+    }    
+}
+
+task ExtractTask {
+    # indicates that this task should NOT be call cached
+    meta {
+       volatile: true
+    }
+
+    input {
+        # ------------------------------------------------
+        # Input args:
+        File reference
+        File reference_index
+        File reference_dict
+    
+        String? fq_probe_info_table 
+        File? probe_info_file
+        String probe_info_clause = if defined(probe_info_file) then "--probe-info-csv ${probe_info_file}" else "--probe-info-table ${fq_probe_info_table}"
+
+        Int min_probe_id
+        Int max_probe_id
+        String sample_info_table
+        String use_compressed_data
+        String cohort_extract_table
+        String project_id
+        String output_file
+        
+        # Runtime Options:
+        File? gatk_override
+    }
+
+
+    # ------------------------------------------------
+    # Run our command:
+    command <<<
+        set -e
+        export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
+
+        df -h
+
+        gatk --java-options "-Xmx4g" \
+            ArrayExtractCohort \
+                -R "~{reference}" \
+                -O "~{output_file}" \
+                ~{probe_info_clause} \
+                --project-id "~{project_id}" \
+                --sample-info-table "~{sample_info_table}" \
+                --use-compressed-data "false" \
+                --cohort-extract-table "~{cohort_extract_table}" \
+                --local-sort-max-records-in-ram "10000000" \
+                --min-probe-id ~{min_probe_id} --max-probe-id ~{max_probe_id}
+
+    >>>
+
+    # ------------------------------------------------
+    # Runtime settings:
+    runtime {
+        docker: "us.gcr.io/broad-dsde-methods/broad-gatk-snapshots:varstore_0701e99b04594651d3c20375bed230b38420d58f_array_probe_id_ranges"
+        memory: "7 GB"
+        disks: "local-disk 10 HDD"
+        bootDiskSizeGb: 15
+        preemptible: 0
+        cpu: 2
+    }
+
+    # ------------------------------------------------
+    # Outputs:
+    output {
+        File output_vcf = "~{output_file}"
+        File output_vcf_index = "~{output_file}.tbi"
+    }
+ }
+ 
+ task MergeVCFs {
+   input {
+     Array[File] input_vcfs
+     Array[File] input_vcfs_indexes
+     String output_vcf_name
+     Int preemptible_tries
+   }
+
+   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
+
+   # Using MergeVcfs instead of GatherVcfs so we can create indices
+   # See https://github.com/broadinstitute/picard/issues/789 for relevant GatherVcfs ticket
+   command {
+     java -Xms2000m -jar /usr/gitc/picard.jar \
+       MergeVcfs \
+       INPUT=~{sep=' INPUT=' input_vcfs} \
+       OUTPUT=~{output_vcf_name}
+   }
+   runtime {
+     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.1-1540490856"
+     preemptible: preemptible_tries
+     memory: "3 GiB"
+     disks: "local-disk ~{disk_size} HDD"
+   }
+   output {
+     File output_vcf = "~{output_vcf_name}"
+     File output_vcf_index = "~{output_vcf_name}.tbi"
+   }
+ }
+ 
+
+
