@@ -16,7 +16,7 @@ workflow RawArrayCohortExtract {
         String fq_cohort_mapping_table
         Int ttl
         
-        String output_file_base_name="export"
+        String output_file_base_name
         
         String full_sample_info_table
     }
@@ -49,6 +49,14 @@ workflow RawArrayCohortExtract {
                 project_id            = query_project,
                 output_file           = "${output_file_base_name}_${i}.vcf.gz"
         }
+    }
+
+    call MergeVCFs { 
+       input:
+           input_vcfs = ExtractTask.output_vcf,
+           input_vcfs_indexes = ExtractTask.output_vcf_index,
+           output_vcf_name = "${output_file_base_name}.vcf.gz",
+           preemptible_tries = 3
     }
 }
 
@@ -175,8 +183,40 @@ task ExtractTask {
     # ------------------------------------------------
     # Outputs:
     output {
-        File evoked_variants = output_file
+        File output_vcf = "~{output_file}"
+        File output_vcf_index = "~{output_file}.tbi"
     }
  }
+ 
+ task MergeVCFs {
+   input {
+     Array[File] input_vcfs
+     Array[File] input_vcfs_indexes
+     String output_vcf_name
+     Int preemptible_tries
+   }
+
+   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
+
+   # Using MergeVcfs instead of GatherVcfs so we can create indices
+   # See https://github.com/broadinstitute/picard/issues/789 for relevant GatherVcfs ticket
+   command {
+     java -Xms2000m -jar /usr/gitc/picard.jar \
+       MergeVcfs \
+       INPUT=~{sep=' INPUT=' input_vcfs} \
+       OUTPUT=~{output_vcf_name}
+   }
+   runtime {
+     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.4.1-1540490856"
+     preemptible: preemptible_tries
+     memory: "3 GiB"
+     disks: "local-disk ~{disk_size} HDD"
+   }
+   output {
+     File output_vcf = "~{output_vcf_name}"
+     File output_vcf_index = "~{output_vcf_name}.tbi"
+   }
+ }
+ 
 
 

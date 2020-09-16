@@ -4,6 +4,8 @@
   "RawArrayCohortExtract.number_of_partitions": "4",
   "RawArrayCohortExtract.probes_per_partition": "500000",
 
+  "RawArrayCohortExtract.output_file_base_name": "export",
+
   "RawArrayCohortExtract.max_tables": "25",
   "RawArrayCohortExtract.query_project": "broad-dsp-spec-ops",
   "RawArrayCohortExtract.fq_dataset": "spec-ops-aou.aou_pmi_synthetic_100k",
