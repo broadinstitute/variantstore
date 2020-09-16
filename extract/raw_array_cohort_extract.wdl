@@ -62,6 +62,11 @@ workflow RawArrayCohortExtract {
            output_vcf_name = "${output_file_base_name}.vcf.gz",
            preemptible_tries = 3
     }
+    
+    output {
+        File output_vcf = MergeVCFs.output_vcf
+        File output_vcf_idx = MergeVCFs.output_vcf_index
+    }
 }
 
 ################################################################################

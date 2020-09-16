@@ -1,19 +1,21 @@
 {
+  "RawArrayCohortExtract.full_sample_info_table":"spec-ops-aou.aou_pmi_synthetic_100k.cohort_10_of_100k_sample_list",
   "RawArrayCohortExtract.fq_cohort_mapping_table": "spec-ops-aou.aou_pmi_synthetic_100k.cohort_10_of_100k_sample_list",
-  "RawArrayCohortExtract.fq_destination_table": "spec-ops-aou.temp_tables.specops_cromwell_demo_10_cohort_extract",
+  "RawArrayCohortExtract.fq_destination_dataset": "spec-ops-aou.temp_tables",
+  
   "RawArrayCohortExtract.number_of_partitions": "4",
   "RawArrayCohortExtract.probes_per_partition": "500000",
   "RawArrayCohortExtract.fq_probe_info_table": "spec-ops-aou.aou_pmi_synthetic_100k.probe_info",
+
+  "RawArrayCohortExtract.output_file_base_name": "export",
 
   "RawArrayCohortExtract.max_tables": "25",
   "RawArrayCohortExtract.query_project": "broad-dsp-spec-ops",
   "RawArrayCohortExtract.fq_dataset": "spec-ops-aou.aou_pmi_synthetic_100k",
   "RawArrayCohortExtract.ttl": "24",
 
-  "RawArrayCohortExtract.reference":"/Users/kcibul/seq/references//hg19/v0/Homo_sapiens_assembly19.fasta",
-  "RawArrayCohortExtract.reference_index":"/Users/kcibul/seq/references//hg19/v0/Homo_sapiens_assembly19.fasta.fai",
-  "RawArrayCohortExtract.reference_dict":"/Users/kcibul/seq/references//hg19/v0/Homo_sapiens_assembly19.dict",
-
-  "RawArrayCohortExtract.full_sample_info_table":"spec-ops-aou.aou_pmi_synthetic_100k.cohort_10_of_100k_sample_list"
+  "RawArrayCohortExtract.reference":"gs://broad-references/hg19/v0/Homo_sapiens_assembly19.fasta",
+  "RawArrayCohortExtract.reference_index":"gs://broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai",
+  "RawArrayCohortExtract.reference_dict":"gs://broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
 }
 
