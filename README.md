@@ -43,3 +43,16 @@ _**WARNING**_
 It is important that new files are not being added to this directory during this process or they might be moved to the done directory without being processed. It is important not to reload the same file more than once or you will get duplicate entries in the database. 
 
 
+## Extract
+
+sample query to create cohort sample table
+
+	CREATE OR REPLACE TABLE `spec-ops-aou.aou_preprod.cohort_20` AS
+		SELECT sample_id, sample_name FROM
+		(
+  			SELECT sample_id, sample_name, RAND() as x
+  			FROM `spec-ops-aou.aou_preprod.sample_list`
+  			ORDER BY x
+  			LIMIT 20
+		)
+		

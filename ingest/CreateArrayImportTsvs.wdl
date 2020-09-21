@@ -63,7 +63,7 @@ task CreateImportTsvs {
 
       gatk --java-options "-Xmx2500m" CreateArrayIngestFiles \
         -V ~{input_vcf} \
-        ~{"-QCF " + input_metrics} \ 
+        ~{"-QCF " + input_metrics} \
         ~{"--probe-info-file " + probe_info_file} \
         ~{"--probe-info-table " + probe_info_table} \
         -SNM ~{sampleMap} \
@@ -79,7 +79,7 @@ task CreateImportTsvs {
       cpu: 2
   }
   output {
-      File metadata_tsv = glob("metadata_*.tsv")[0]
+      File metadata_tsv = glob("sample_*.tsv")[0]
       File arraydata_tsv = glob("raw_*.tsv")[0] 
   }
 }
