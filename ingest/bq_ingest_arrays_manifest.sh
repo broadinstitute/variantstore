@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 if [ $# -lt 5 ]; then
   echo "usage: $0 <project-id> <dataset-name> <table-name> <manifest-file> <manifest-schema>"
   exit 1
