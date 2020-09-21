@@ -49,7 +49,7 @@ if [ $NUM_METADATA_FILES -gt 0 ]; then
     echo "making table $SAMPLE_LIST_TABLE"
     bq --location=US mk --project_id=$PROJECT_ID $SAMPLE_LIST_TABLE $SAMPLE_LIST_SCHEMA
   fi
-  bq load --location=US --project_id=$PROJECT_ID --skip_leading_rows=1 --source_format=CSV -F "\t" $SAMPLE_LIST_TABLE $PROCESSING_DIR$METADATA_FILES $SAMPLE_LIST_SCHEMA
+  bq load --location=US --project_id=$PROJECT_ID --skip_leading_rows=1 --null_marker="null" --source_format=CSV -F "\t" $SAMPLE_LIST_TABLE $PROCESSING_DIR$METADATA_FILES $SAMPLE_LIST_SCHEMA
   echo "ingested ${METADATA_FILES} file from $PROCESSING_DIR into table $SAMPLE_LIST_TABLE"
 else
   echo "no metadata files to process"
