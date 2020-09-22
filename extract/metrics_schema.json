@@ -7,7 +7,7 @@
   },
   {
     "description": "[DESCRIPTION]",
-    "name": "hwe_pval",
+    "name": "excess_het",
     "type": "Float",
     "mode": "Required"
   },
