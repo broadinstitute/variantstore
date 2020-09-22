@@ -106,7 +106,9 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number
                 f" (SELECT probe_id, " +
                 f"SUM(IF(GT_encoded is null OR GT_encoded = 'R', 1, 0)) hom_ref, \n" +
                 f"SUM(IF(GT_encoded = 'X', 1, 0)) het, \n" +
-                f"SUM(IF(GT_encoded = 'A' OR GT_encoded = 'Y' OR GT_encoded = 'B', 1, 0)) hom_var, \n" +
+                f"SUM(IF(GT_encoded = 'A', 1, 0)) hom_var, \n" +
+                f"SUM(IF(GT_encoded = 'Y', 1, 0)) het_1_2, \n" +
+                f"SUM(IF(GT_encoded = 'B', 1, 0)) hom_var_2_2, \n" +
                 f"SUM(IF(GT_encoded = '.', 1, 0)) no_call \n" +
                 f"FROM q_all \n" +
                 f"GROUP BY probe_id)"
