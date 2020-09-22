@@ -44,14 +44,18 @@ def compare_float(e1, e2, key, tolerance):
     s2 = e2[key]
     
     if (s1 != s2):
-        v1 = float(s1)
-        v2 = float(s2)
+        if ("." in s1 or "." in s2):
+            print(f"DIFF on {key} with values of {e1} and {e2}")
+            
+        else:
+            v1 = float(s1)
+            v2 = float(s2)
     
-        delta = abs(v2 - v1)
-        if delta > tolerance:
-            print(f"DIFF on {key} of {delta}")
-            print(f"{e1}")
-            print(f"{e2}")
+            delta = abs(v2 - v1)
+            if delta > tolerance:
+                print(f"DIFF on {key} of {delta}")
+                print(f"{e1}")
+                print(f"{e2}")
         
     
 EXACT_FIELDS = ['chrom','pos','id','ref','alt','gt']
@@ -78,8 +82,8 @@ with open(vcf_file_1) as file1, open(vcf_file_2) as file2:
         for key in EXACT_FIELDS:
             compare(e1, e2, key)
 
-        compare_float(e1, e2, 'baf', 1.0 / 255.0)
-        compare_float(e1, e2, 'lrr', (7.0 - -28.0) / 255.0)
-        compare_float(e1, e2, 'normx', (8.0-0.0) / 255.0)
-        compare_float(e1, e2, 'normy', (8.0-0.0) / 255.0)
+        compare_float(e1, e2, 'baf', 0.001)
+        compare_float(e1, e2, 'lrr', 0.001)
+        compare_float(e1, e2, 'normx', 0.001)
+        compare_float(e1, e2, 'normy', 0.001)
 

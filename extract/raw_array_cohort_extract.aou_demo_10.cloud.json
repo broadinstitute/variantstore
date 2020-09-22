@@ -1,13 +1,13 @@
 {
-  "RawArrayCohortExtract.full_sample_info_table":"spec-ops-aou.aou_pmi_synthetic_100k.cohort_10_of_100k_sample_list",
-  "RawArrayCohortExtract.fq_cohort_mapping_table": "spec-ops-aou.aou_pmi_synthetic_100k.cohort_10_of_100k_sample_list",
+  "RawArrayCohortExtract.full_sample_info_table":"spec-ops-aou.aou_pmi_synthetic_100k.cohort_1000_of_100k_sample_list",
+  "RawArrayCohortExtract.fq_cohort_mapping_table": "spec-ops-aou.aou_pmi_synthetic_100k.cohort_1000_of_100k_sample_list",
   "RawArrayCohortExtract.fq_destination_dataset": "spec-ops-aou.temp_tables",
   
-  "RawArrayCohortExtract.number_of_partitions": "4",
-  "RawArrayCohortExtract.probes_per_partition": "500000",
+  "RawArrayCohortExtract.number_of_partitions": "50",
+  "RawArrayCohortExtract.probes_per_partition": "40000",
   "RawArrayCohortExtract.fq_probe_info_table": "spec-ops-aou.aou_pmi_synthetic_100k.probe_info",
 
-  "RawArrayCohortExtract.output_file_base_name": "export",
+  "RawArrayCohortExtract.output_file_base_name": "export.1000",
 
   "RawArrayCohortExtract.max_tables": "25",
   "RawArrayCohortExtract.query_project": "broad-dsp-spec-ops",
