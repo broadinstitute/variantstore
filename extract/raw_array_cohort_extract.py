@@ -100,14 +100,15 @@ def populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number
         subs[id] = get_subselect(fq_array_table, samples, id, extract_genotype_counts_only)
         j = j + 1
 
-  # ref vs alt allele doesn't matter for HWE or call rate
   # TODO: make genotype flexible to older encodings
   select_sql = (
                 f" (SELECT probe_id, " +
-                f"COUNT(IF(GT_encoded LIKE 'AA', Sample_id, null)) hom_ref, \n" +
-                f"COUNT(IF(GT_encoded LIKE 'AB', Sample_id, null)) het, \n" +
-                f"COUNT(IF(GT_encoded LIKE 'BB', Sample_id, null)) hom_var, \n" +
-                f"COUNT(IF(GT_encoded LIKE '.', Sample_id, null)) no_call \n" +
+                f"SUM(IF(GT_encoded is null OR GT_encoded = 'R', 1, 0)) hom_ref, \n" +
+                f"SUM(IF(GT_encoded = 'X', 1, 0)) het, \n" +
+                f"SUM(IF(GT_encoded = 'A', 1, 0)) hom_var, \n" +
+                f"SUM(IF(GT_encoded = 'Y', 1, 0)) het_1_2, \n" +
+                f"SUM(IF(GT_encoded = 'B', 1, 0)) hom_var_2_2, \n" +
+                f"SUM(IF(GT_encoded = '.', 1, 0)) no_call \n" +
                 f"FROM q_all \n" +
                 f"GROUP BY probe_id)"
   ) if extract_genotype_counts_only else f" (SELECT * FROM q_all)"
