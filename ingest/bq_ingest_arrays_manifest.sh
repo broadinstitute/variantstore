@@ -24,7 +24,7 @@ sort -t , -k23n,23 -k24n,24 -k2,2 $TMP_SUB > $TMP_SORTED
 # checking for != "build37Flag" skips the header row (we don't want that numbered)
 # only process rows with 29 fields - this skips some header info fields
 # also skip entries that are flagged, not matched or have index conflict
-awk -F ',' 'NF==29 && ($29!="ILLUMINA_FLAGGED" && $29!="INDEL_NOT_MATCHED" && $29!="INDEL_CONFLICT" && $29!="build37Flag") { flag=$29; if ($29=="PASS") flag=""; print id++","$2","$9","$23","$24","$25","$26","$27","flag }' $TMP_SORTED > $TMP_PROC
+awk -F ',' 'NF==29 && ($29!="ILLUMINA_FLAGGED" && $29!="INDEL_NOT_MATCHED" && $29!="INDEL_CONFLICT" && $29!="build37Flag") { flag=$29; if ($29=="PASS") flag="null"; print id++","$2","$9","$23","$24","$25","$26","$27","flag }' $TMP_SORTED > $TMP_PROC
 
 # remove the integer prefixes for chromosomes X, Y and MT
 sed 's/,23X,/,X,/g; s/,24Y,/,Y,/g; s/,25MT,/,MT,/g' $TMP_PROC > $TMP
@@ -36,7 +36,7 @@ bq mk --project_id=$PROJECT_ID $DATASET_NAME
 
 # create a site info table and load - schema and TSV header need to be the same order
 bq --location=US mk --project_id=$PROJECT_ID $DATASET_NAME.$TABLE $MANIFEST_SCHEMA
-bq load --location=US --project_id=$PROJECT_ID --source_format=CSV $DATASET_NAME.$TABLE $TMP $MANIFEST_SCHEMA
+bq load --location=US --project_id=$PROJECT_ID --null_marker "null" --source_format=CSV $DATASET_NAME.$TABLE $TMP $MANIFEST_SCHEMA
 
 echo "ingested manifest data into table $TABLE"
 bq show --format=prettyjson --project_id=$PROJECT_ID $DATASET_NAME.$TABLE

@@ -20,8 +20,6 @@ workflow RawArrayCohortExtract {
         Int ttl = 24
         
         String output_file_base_name
-        
-        String full_sample_info_table
     }
     
     call CreateExtractTable {
@@ -47,8 +45,7 @@ workflow RawArrayCohortExtract {
                 probe_info_file       = probe_info_file,
                 min_probe_id          = 1 + i * probes_per_partition,
                 max_probe_id          = (i+1) * probes_per_partition,
-                sample_info_table     = full_sample_info_table,
-                use_compressed_data   = "false",
+                fq_cohort_mapping_table     = fq_cohort_mapping_table,
                 cohort_extract_table  = CreateExtractTable.cohort_extract_table,
                 project_id            = query_project,
                 output_file           = "${output_file_base_name}_${i}.vcf.gz"
@@ -148,8 +145,7 @@ task ExtractTask {
 
         Int min_probe_id
         Int max_probe_id
-        String sample_info_table
-        String use_compressed_data
+        String fq_cohort_mapping_table
         String cohort_extract_table
         String project_id
         String output_file
@@ -173,7 +169,7 @@ task ExtractTask {
                 -O "~{output_file}" \
                 ~{probe_info_clause} \
                 --project-id "~{project_id}" \
-                --sample-info-table "~{sample_info_table}" \
+                --cohort-sample-table "~{fq_cohort_mapping_table}" \
                 --use-compressed-data "false" \
                 --cohort-extract-table "~{cohort_extract_table}" \
                 --local-sort-max-records-in-ram "10000000" \

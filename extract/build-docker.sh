@@ -1,3 +1,3 @@
 # for illustrative purposes only
-docker build -t kcibul/variantstore-export .
-docker push kcibul/variantstore-export
+docker build -t us.gcr.io/broad-dsde-methods/variantstore-export:091920 .
+docker push us.gcr.io/broad-dsde-methods/variantstore-export:091820

@@ -3,10 +3,11 @@ A scalable and efficient solution to storing and accessing genomic variants
 
 ## Ingest
 ### Array manifest
-First you need to load the extended manifest file for your array. This script assumes the manifest file is on your local filesystem. (TODO add a flag to process file from google bucket)
-`./bq_ingest_array_manifest.sh <project-id> <dataset-name> <table-name> <ext-manifest-file> <manifest-schema>`
+First you need to load the extended manifest file for your array. Both the manifest file and the schema file need to be on your local filesystem.
 
-The dataset will be created if it doesn't exist. The table should not exist or duplicate data will be loaded. For manifest-schema, specify "manifest_schema.json". (TODO default the manifest file) For example: `./bq_ingest_array_manifest.sh spec-ops-aou aou_arrays_test probe_info GDA-8v1-0_A1.1.5.extended.csv manifest-schema.json`
+`./ingest/bq_ingest_arrays_manifest.sh <project-id> <dataset-name> <table-name> <ext-manifest-file> <manifest-schema>`
+
+The dataset will be created if it doesn't exist. The table should not exist or duplicate data will be loaded. For manifest-schema, specify "manifest_schema.json". (TODO default the manifest file) For example: `./ingest/bq_ingest_arrays_manifest.sh spec-ops-aou aou_arrays_test probe_info GDA-8v1-0_A1.1.5.extended.csv manifest-schema.json`
 
 ### Array Data
 There are several steps to ingest the vcf array data into BigQuery.
@@ -22,7 +23,7 @@ Assign a sequential integer id for each sample. If you want to process several s
 
 Run the gatk ingest tool to convert the vcf file to 2 tsv files: one for the sample mapping and one for the array data. 
 
-	./gatk CreateArrayIngestFiles -V <input-vcf> --probe-info-table <gs-location-of-probe-info-export> --use-compressed-data true --ref-version 37
+	./gatk CreateArrayIngestFiles -V <input-vcf> --probe-info-table <gs-location-of-probe-info-export> --ref-version 37
 
 Copy the resulting tsv files to a google bucket for upload 
 
@@ -32,14 +33,28 @@ Both of these steps (the gatk tool and the copy of the files) can be accomplishe
 
 Run the bq ingest script for array data. This script will import the sample and raw array data files for the table specified and then move the files to a "done" subdirectory.
 
-	./bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <table-number>
+	./ingest/bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <table-number>
 	
 For example:
 
-	./bq_ingest_arrays.sh spec-ops-aou aou_arrays_test gs://broad-dsp-spec-ops/scratch/import 2
+	./ingest/bq_ingest_arrays.sh spec-ops-aou aou_arrays_test gs://broad-dsp-spec-ops/scratch/import 2
 
 _**WARNING**_ 
 
 It is important that new files are not being added to this directory during this process or they might be moved to the done directory without being processed. It is important not to reload the same file more than once or you will get duplicate entries in the database. 
 
 
+## Extract
+
+Here is a sample query you can use to create a cohort table for the samples you want to extract. (Soon there will be an option to pass this as a tsv).
+
+	CREATE OR REPLACE TABLE `spec-ops-aou.aou_preprod.cohort_20` AS
+		SELECT sample_id, sample_name FROM
+		(
+  			SELECT sample_id, sample_name, RAND() as x
+  			FROM `spec-ops-aou.aou_preprod.sample_list`
+  			ORDER BY x
+  			LIMIT 20
+		)
+		
+Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
