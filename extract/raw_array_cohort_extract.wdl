@@ -3,7 +3,9 @@ version 1.0
 workflow RawArrayCohortExtract {
    input {
         Int number_of_partitions = 2
-        Int probes_per_partition = 1000000
+        Int max_probe_id = 1914822
+        
+        Int probes_per_partition = ceil ( max_probe_id / number_of_partitions)
         
         File reference
         File reference_index
@@ -169,10 +171,10 @@ task ExtractTask {
                 -O "~{output_file}" \
                 ~{probe_info_clause} \
                 --project-id "~{project_id}" \
-                --cohort-sample-table "~{fq_cohort_mapping_table}" \
+                --sample-info-table "~{fq_cohort_mapping_table}" \
                 --use-compressed-data "false" \
                 --cohort-extract-table "~{cohort_extract_table}" \
-                --local-sort-max-records-in-ram "10000000" \
+                --local-sort-max-records-in-ram "5000000" \
                 --min-probe-id ~{min_probe_id} --max-probe-id ~{max_probe_id}
 
     >>>
