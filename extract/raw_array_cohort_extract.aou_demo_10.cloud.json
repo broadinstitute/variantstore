@@ -17,7 +17,7 @@
   "RawArrayCohortExtract.reference":"gs://gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta",
   "RawArrayCohortExtract.reference_index":"gs://gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai",
   "RawArrayCohortExtract.reference_dict":"gs://gcp-public-data--broad-references/hg19/v0/Homo_sapiens_assembly19.dict"
-
+,
   "RawArrayCohortExtract.gatk_override":"gs://broad-dsp-spec-ops/scratch/andrea/gatk-array-preprod.jar",
 }
 
