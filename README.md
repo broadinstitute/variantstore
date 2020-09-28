@@ -57,10 +57,12 @@ Here is a sample query you can use to create a cohort table for the samples you 
   			LIMIT 20
 		)
 		
-Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+
+Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `extract/raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+
 
 ## Issues
-When running ./ingest/bq_ingest_array.sh the `gsutil mv` command at the end uses the `-m` option to multi-thread the move. Locally, I get this error (I think my python environment has problems). But I have been able to run the command with this option on from a web console. This should not be an error, but if so, we can always remove the `-m` option. If this error does occur, it just means not all of the ingested files are moved to the done directory. 
+When running ./ingest/bq_ingest_array.sh the `gsutil mv` command at the end uses the `-m` option to multi-thread the move. Locally, I get this error (I think my python environment has problems). But I have been able to run the command with this option on from a web console. This should not be an error, but if so, we can always remove the `-m` option. If this error does occur, it just means not all of the ingested files are moved to the done directory. Typically the data is loaded (if there are no errors before this during the bq load commands).
 
 	Exception in thread Thread-5:
 	Traceback (most recent call last):
