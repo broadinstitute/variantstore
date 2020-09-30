@@ -1,8 +1,8 @@
 GATK_HOME=~/projects/gatk
 
 project_id="spec-ops-aou"
-probe_info_table="spec-ops-aou.ah_aou_synthetic.probe_info"
-sample_table="spec-ops-aou.ah_aou_synthetic.cohort_10_of_500_sample_list"
+probe_info_table="spec-ops-aou.aou_synthetic_100k.probe_info"
+sample_table="spec-ops-aou.aou_synthetic_100k.cohort_10_of_100k_sample_list"
 cohort_table="spec-ops-aou.temp_tables.demo_10_cohort_extract"
 output_vcf="demo_10.aou.vcf.gz"
 

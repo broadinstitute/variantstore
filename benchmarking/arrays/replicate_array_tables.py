@@ -2,13 +2,13 @@ import math
 import sys
 
 replicates = 25
-DATASET="spec-ops-aou.aou_pmi_synthetic_100k"
+DATASET="spec-ops-aou.aou_synthetic_100k"
 SAMPLES_PER_TABLE=4000
 
 print(f"INSERT INTO `{DATASET}.sample_list` (");
 bits = []
 for r in range(1,replicates):
-    bits.append(f"SELECT sample_name || \"_T{r+1:02}\", {SAMPLES_PER_TABLE*r} + sample_id " \
+    bits.append(f"SELECT * REPLACE (sample_name || \"_T{r+1:02}\" as sample_name, {SAMPLES_PER_TABLE*r} + sample_id as sample_id) " \
           f"FROM `{DATASET}.sample_list` WHERE sample_id <= 4000 \n ")
 
 print(" UNION ALL\n ".join(bits))

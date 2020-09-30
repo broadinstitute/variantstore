@@ -22,6 +22,7 @@ workflow RawArrayCohortExtract {
         Int ttl = 24
         
         String output_file_base_name
+        String? gatk_override
     }
     
     call CreateExtractTable {
@@ -40,6 +41,7 @@ workflow RawArrayCohortExtract {
     scatter(i in range(number_of_partitions)) {
         call ExtractTask {
             input:
+                gatk_override         = gatk_override,
                 reference             = reference,
                 reference_index       = reference_index,
                 reference_dict        = reference_dict,
