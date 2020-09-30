@@ -57,4 +57,56 @@ Here is a sample query you can use to create a cohort table for the samples you 
   			LIMIT 20
 		)
 		
-Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+
+Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `extract/raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+
+
+## Issues
+When running ./ingest/bq_ingest_array.sh the `gsutil mv` command at the end uses the `-m` option to multi-thread the move. Locally, I get this error (I think my python environment has problems). But I have been able to run the command with this option on from a web console. This should not be an error, but if so, we can always remove the `-m` option. If this error does occur, it just means not all of the ingested files are moved to the done directory. Typically the data is loaded (if there are no errors before this during the bq load commands).
+
+	Exception in thread Thread-5:
+	Traceback (most recent call last):
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/managers.py", line 811, in _callmethod
+	    conn = self._tls.connection
+	AttributeError: 'ForkAwareLocal' object has no attribute 'connection'
+	
+	During handling of the above exception, another exception occurred:
+	
+	Traceback (most recent call last):
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 926, in _bootstrap_inner
+	    self.run()
+	  File "/Users/ahaessly/google-cloud-sdk/platform/gsutil/gslib/command.py", line 2348, in run
+	    cls = copy.copy(class_map[caller_id])
+	  File "<string>", line 2, in __getitem__
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/managers.py", line 815, in _callmethod
+	    self._connect()
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/pyException in thread Thread-5:
+	Traceback (most recent call last):
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/managers.py", line 811, in _callmethod
+	    conn = self._tls.connection
+	AttributeError: 'ForkAwareLocal' object has no attribute 'connection'
+	
+	During handling of the above exception, another exception occurred:
+	
+	Traceback (most recent call last):
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/threading.py", line 926, in _bootstrap_inner
+	    self.run()
+	  File "/Users/ahaessly/google-cloud-sdk/platform/gsutil/gslib/command.py", line 2348, in run
+	    cls = copy.copy(class_map[caller_id])
+	  File "<string>", line 2, in __getitem__
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/managers.py", line 815, in _callmethod
+	    self._connect()
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/managers.py", line 802, in _connect
+	    conn = self._Client(self._token.address, authkey=self._authkey)
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/connection.py", line 492, in Client
+	    c = SocketClient(address)
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/connection.py", line 619, in SocketClient
+	    s.connect(address)
+	ConnectionRefusedError: [Errno 61] Connection refused
+	thon3.7/multiprocessing/managers.py", line 802, in _connect
+	    conn = self._Client(self._token.address, authkey=self._authkey)
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/connection.py", line 492, in Client
+	    c = SocketClient(address)
+	  File "/usr/local/Cellar/python/3.7.7/Frameworks/Python.framework/Versions/3.7/lib/python3.7/multiprocessing/connection.py", line 619, in SocketClient
+	    s.connect(address)
+	ConnectionRefusedError: [Errno 61] Connection refused

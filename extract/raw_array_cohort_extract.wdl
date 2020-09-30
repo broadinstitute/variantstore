@@ -112,7 +112,7 @@ task CreateExtractTable {
     # ------------------------------------------------
     # Runtime settings:
     runtime {
-        docker: "kcibul/variantstore-export:latest"
+        docker: "us.gcr.io/broad-dsde-methods/variantstore-export:091820"
         memory: "3 GB"
         disks: "local-disk 10 HDD"
         bootDiskSizeGb: 15
