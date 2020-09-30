@@ -3,7 +3,9 @@ version 1.0
 workflow RawArrayCohortExtract {
    input {
         Int number_of_partitions = 2
-        Int probes_per_partition = 1000000
+        Int max_probe_id = 1914822
+        
+        Int probes_per_partition = ceil ( max_probe_id / number_of_partitions)
         
         File reference
         File reference_index
@@ -112,11 +114,11 @@ task CreateExtractTable {
     # ------------------------------------------------
     # Runtime settings:
     runtime {
-        docker: "us.gcr.io/broad-dsde-methods/variantstore-export:091820"
+        docker: "us.gcr.io/broad-dsde-methods/variantstore-export:091920"
         memory: "3 GB"
         disks: "local-disk 10 HDD"
         bootDiskSizeGb: 15
-        preemptible: 0
+        preemptible: 3
         cpu: 1
     }
 
@@ -172,7 +174,7 @@ task ExtractTask {
                 --cohort-sample-table "~{fq_cohort_mapping_table}" \
                 --use-compressed-data "false" \
                 --cohort-extract-table "~{cohort_extract_table}" \
-                --local-sort-max-records-in-ram "10000000" \
+                --local-sort-max-records-in-ram "5000000" \
                 --min-probe-id ~{min_probe_id} --max-probe-id ~{max_probe_id}
 
     >>>
@@ -180,11 +182,11 @@ task ExtractTask {
     # ------------------------------------------------
     # Runtime settings:
     runtime {
-        docker: "us.gcr.io/broad-dsde-methods/broad-gatk-snapshots:varstore_0701e99b04594651d3c20375bed230b38420d58f_array_probe_id_ranges"
+        docker: "us.gcr.io/broad-dsde-methods/broad-gatk-snapshots:varstore_d8a72b825eab2d979c8877448c0ca948fd9b34c7_change_to_hwe"
         memory: "7 GB"
         disks: "local-disk 10 HDD"
         bootDiskSizeGb: 15
-        preemptible: 0
+        preemptible: 3
         cpu: 2
     }
 
@@ -197,6 +199,10 @@ task ExtractTask {
  }
  
  task MergeVCFs {
+   meta {
+     volatile: true
+   }
+ 
    input {
      Array[File] input_vcfs
      Array[File] input_vcfs_indexes
