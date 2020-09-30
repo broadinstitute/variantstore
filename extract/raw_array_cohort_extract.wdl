@@ -171,7 +171,7 @@ task ExtractTask {
                 -O "~{output_file}" \
                 ~{probe_info_clause} \
                 --project-id "~{project_id}" \
-                --sample-info-table "~{fq_cohort_mapping_table}" \
+                --cohort-sample-table "~{fq_cohort_mapping_table}" \
                 --use-compressed-data "false" \
                 --cohort-extract-table "~{cohort_extract_table}" \
                 --local-sort-max-records-in-ram "5000000" \
