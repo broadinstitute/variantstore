@@ -3,9 +3,7 @@ version 1.0
 workflow RawArrayCohortExtract {
    input {
         Int number_of_partitions = 2
-        Int max_probe_id = 1914822
-        
-        Int probes_per_partition = ceil ( max_probe_id / number_of_partitions)
+        Int probes_per_partition = 1000000
         
         File reference
         File reference_index
@@ -18,11 +16,11 @@ workflow RawArrayCohortExtract {
         Int max_tables
         String fq_destination_dataset
         String query_project
+        File cohort_sample_names_file
         String fq_cohort_mapping_table
         Int ttl = 24
         
         String output_file_base_name
-        String? gatk_override
     }
     
     call CreateExtractTable {
@@ -31,6 +29,7 @@ workflow RawArrayCohortExtract {
             max_tables                = max_tables,
             fq_destination_dataset    = fq_destination_dataset,
             query_project             = query_project,
+            cohort_sample_names_file  = cohort_sample_names_file,
             fq_cohort_mapping_table   = fq_cohort_mapping_table,
             ttl                       = ttl,
             number_of_partitions      = number_of_partitions,
@@ -41,7 +40,6 @@ workflow RawArrayCohortExtract {
     scatter(i in range(number_of_partitions)) {
         call ExtractTask {
             input:
-                gatk_override         = gatk_override,
                 reference             = reference,
                 reference_index       = reference_index,
                 reference_dict        = reference_dict,
@@ -84,6 +82,7 @@ task CreateExtractTable {
         Int max_tables
         String fq_destination_dataset
         String query_project
+        File cohort_sample_names_file
         String fq_cohort_mapping_table
         Int ttl
         Int number_of_partitions
@@ -104,7 +103,8 @@ task CreateExtractTable {
           --max_tables ~{max_tables} \
           --fq_destination_table ${export_table} \
           --query_project ~{query_project} \
-          --fq_cohort_sample_mapping_table ~{fq_cohort_mapping_table} \
+          --cohort_sample_names_file ~{cohort_sample_names_file} \
+          --sample_mapping_table ~{fq_cohort_mapping_table} \
           --ttl ~{ttl} \
           --number_of_partitions ~{number_of_partitions} \
           --probes_per_partition ~{probes_per_partition}
@@ -116,11 +116,11 @@ task CreateExtractTable {
     # ------------------------------------------------
     # Runtime settings:
     runtime {
-        docker: "us.gcr.io/broad-dsde-methods/variantstore-export:091920"
+        docker: "kcibul/variantstore-export:latest"
         memory: "3 GB"
         disks: "local-disk 10 HDD"
         bootDiskSizeGb: 15
-        preemptible: 3
+        preemptible: 0
         cpu: 1
     }
 
@@ -176,7 +176,7 @@ task ExtractTask {
                 --cohort-sample-table "~{fq_cohort_mapping_table}" \
                 --use-compressed-data "false" \
                 --cohort-extract-table "~{cohort_extract_table}" \
-                --local-sort-max-records-in-ram "5000000" \
+                --local-sort-max-records-in-ram "10000000" \
                 --min-probe-id ~{min_probe_id} --max-probe-id ~{max_probe_id}
 
     >>>
@@ -184,11 +184,11 @@ task ExtractTask {
     # ------------------------------------------------
     # Runtime settings:
     runtime {
-        docker: "us.gcr.io/broad-dsde-methods/broad-gatk-snapshots:varstore_d8a72b825eab2d979c8877448c0ca948fd9b34c7_change_to_hwe"
+        docker: "us.gcr.io/broad-dsde-methods/broad-gatk-snapshots:varstore_0701e99b04594651d3c20375bed230b38420d58f_array_probe_id_ranges"
         memory: "7 GB"
         disks: "local-disk 10 HDD"
         bootDiskSizeGb: 15
-        preemptible: 3
+        preemptible: 0
         cpu: 2
     }
 
@@ -201,10 +201,6 @@ task ExtractTask {
  }
  
  task MergeVCFs {
-   meta {
-     volatile: true
-   }
- 
    input {
      Array[File] input_vcfs
      Array[File] input_vcfs_indexes
