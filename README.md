@@ -3,11 +3,13 @@ A scalable and efficient solution to storing and accessing genomic variants
 
 ## Ingest
 ### Array manifest
-First you need to load the extended manifest file for your array. Both the manifest file and the schema file need to be on your local filesystem.
+First you need to load the extended manifest file for your array. This will become the probe_id table for your dataset. 
+The WDL to upload the manifest file is in the GATK repo: 
+https://github.com/broadinstitute/gatk/blob/ah_var_store/scripts/variantstore_wdl/ImportArrayManifest.wdl
 
-`./ingest/bq_ingest_arrays_manifest.sh <project-id> <dataset-name> <table-name> <ext-manifest-file> <manifest-schema>`
-
-The dataset will be created if it doesn't exist. The table should not exist or duplicate data will be loaded. For manifest-schema, specify "manifest_schema.json". (TODO default the manifest file) For example: `./ingest/bq_ingest_arrays_manifest.sh spec-ops-aou aou_arrays_test probe_info GDA-8v1-0_A1.1.5.extended.csv manifest-schema.json`
+The dataset will be created if it doesn't exist. The table should not exist or duplicate data will be loaded. For 
+manifest-schema, use schema here: 
+https://github.com/broadinstitute/gatk/blob/ah_var_store/scripts/variantstore_wdl/schemas/manifest_schema.json. 
 
 ### Array Data
 There are several steps to ingest the vcf array data into BigQuery.

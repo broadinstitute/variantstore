@@ -1,6 +1,0 @@
-{
-"ImportArrayManifest.extended_manifest_csv":"gs://broad-dsp-spec-ops/scratch/andrea/arrays/GSAMD-24v1-0_20011747_A1.1.3.extended.csv",
-"ImportArrayManifest.manifest_schema_json":"gs://broad-dsp-spec-ops/scratch/andrea/arrays/manifest_schema.json",
-"ImportArrayManifest.project_id":"broad-dsp-spec-ops",
-"ImportArrayManifest.dataset_name":"GSA_arrays"
-}
