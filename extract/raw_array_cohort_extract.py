@@ -71,15 +71,26 @@ def get_samples_for_partition(cohort, i):
 def split_lists(samples, n):
   return [samples[i * n:(i + 1) * n] for i in range((len(samples) + n - 1) // n )]
 
-def get_all_samples(sample_mapping_table, cohort_sample_names_file):
+def get_all_samples(sample_mapping_table, cohort_sample_names_file, sample_map_outfile):
   sample_names = [line.strip() for line in open(cohort_sample_names_file).readlines()]
   joined_sample_names = ",".join('"' + s + '"' for s in sample_names)
 
-  sql = f"select sample_id from `{sample_mapping_table}` WHERE sample_name IN ({joined_sample_names})"
+  sql = f"select sample_id,sample_name from `{sample_mapping_table}` WHERE sample_name IN ({joined_sample_names})"
       
   results = execute_with_retry("read cohort table", sql)    
-  cohort = [row.sample_id for row in list(results)]
+
+  cohort = []
+  csv_str = ""
+
+  for row in list(results):
+    cohort.append(row.sample_id)
+    csv_str = csv_str + str(row.sample_id) + "," + row.sample_name + "\n"
+  
   cohort.sort()
+
+  with open(sample_map_outfile, 'w') as outfile:
+    outfile.write(csv_str)
+
   return cohort
 
 def populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number_of_partitions, probes_per_partition, extract_genotype_counts_only):
@@ -138,6 +149,7 @@ def do_extract(fq_dataset,
                fq_destination_table,
                sample_mapping_table,
                cohort_sample_names_file,
+               sample_map_outfile,
                ttl,
                number_of_partitions,
                probes_per_partition,
@@ -152,7 +164,7 @@ def do_extract(fq_dataset,
     RAW_ARRAY_TABLE_COUNT = max_tables
     print(f"Using {RAW_ARRAY_TABLE_COUNT} tables in {fq_dataset}...")
 
-    cohort = get_all_samples(fq_cohort_sample_mapping_table)
+    cohort = get_all_samples(sample_mapping_table, cohort_sample_names_file, sample_map_outfile)
     print(f"Discovered {len(cohort)} samples in {sample_mapping_table}...")
 
     populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number_of_partitions, probes_per_partition, extract_genotype_counts_only)
@@ -177,6 +189,7 @@ if __name__ == '__main__':
   parser.add_argument('--number_of_partitions',type=int, help='how many partitions to create', required=False, default=1)
   parser.add_argument('--probes_per_partition',type=int, help='how many probes in each partition', required=False, default=2000000)
   parser.add_argument('--extract_genotype_counts_only', type=bool, help='Extract only genoype counts for QC metric calculations', required=False, default=False)
+  parser.add_argument('--sample_map_outfile', type=str, help='Write out sample_id,sample_name map as a CSV', required=False, default=False)
 
   # Execute the parse_args() method
   args = parser.parse_args()
@@ -187,6 +200,7 @@ if __name__ == '__main__':
              args.fq_destination_table,
              args.sample_mapping_table,
              args.cohort_sample_names_file,
+             args.sample_map_outfile,
              args.ttl,
              args.number_of_partitions, 
              args.probes_per_partition,
