@@ -71,11 +71,11 @@ def get_samples_for_partition(cohort, i):
 def split_lists(samples, n):
   return [samples[i * n:(i + 1) * n] for i in range((len(samples) + n - 1) // n )]
 
-def get_all_samples(sample_mapping_table, cohort_sample_names_file, sample_map_outfile):
+def get_all_samples(fq_sample_mapping_table, cohort_sample_names_file, sample_map_outfile):
   sample_names = [line.strip() for line in open(cohort_sample_names_file).readlines()]
   joined_sample_names = ",".join('"' + s + '"' for s in sample_names)
 
-  sql = f"select sample_id,sample_name from `{sample_mapping_table}` WHERE sample_name IN ({joined_sample_names})"
+  sql = f"select sample_id,sample_name from `{fq_sample_mapping_table}` WHERE sample_name IN ({joined_sample_names})"
       
   results = execute_with_retry("read cohort table", sql)    
 
@@ -147,7 +147,7 @@ def do_extract(fq_dataset,
                max_tables,
                query_project,
                fq_destination_table,
-               sample_mapping_table,
+               fq_sample_mapping_table,
                cohort_sample_names_file,
                sample_map_outfile,
                ttl,
@@ -164,8 +164,8 @@ def do_extract(fq_dataset,
     RAW_ARRAY_TABLE_COUNT = max_tables
     print(f"Using {RAW_ARRAY_TABLE_COUNT} tables in {fq_dataset}...")
 
-    cohort = get_all_samples(sample_mapping_table, cohort_sample_names_file, sample_map_outfile)
-    print(f"Discovered {len(cohort)} samples in {sample_mapping_table}...")
+    cohort = get_all_samples(fq_sample_mapping_table, cohort_sample_names_file, sample_map_outfile)
+    print(f"Discovered {len(cohort)} samples in {fq_sample_mapping_table}...")
 
     populate_extract_table(fq_dataset, cohort, fq_destination_table, ttl, number_of_partitions, probes_per_partition, extract_genotype_counts_only)
 
@@ -182,7 +182,7 @@ if __name__ == '__main__':
   parser.add_argument('--dataset',type=str, help='project.dataset location of raw array data', required=True)
   parser.add_argument('--fq_destination_table',type=str, help='fully qualified destination table', required=True)
   parser.add_argument('--query_project',type=str, help='Google project where query should be executed', required=True)
-  parser.add_argument('--sample_mapping_table',type=str, help='Mapping table from sample_id to sample_name', required=True)
+  parser.add_argument('--fq_sample_mapping_table',type=str, help='Mapping table from sample_id to sample_name', required=True)
   parser.add_argument('--cohort_sample_names_file',type=str, help='File containing newline separated sample_names in the cohort', required=True)
   parser.add_argument('--max_tables',type=int, help='Maximum number of array_xxx tables to consider', required=False, default=250)
   parser.add_argument('--ttl',type=int, help='how long should the destination table be kept before expiring (in hours)', required=False, default=24)
@@ -198,7 +198,7 @@ if __name__ == '__main__':
              args.max_tables,
              args.query_project,
              args.fq_destination_table,
-             args.sample_mapping_table,
+             args.fq_sample_mapping_table,
              args.cohort_sample_names_file,
              args.sample_map_outfile,
              args.ttl,
