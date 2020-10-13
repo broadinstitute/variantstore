@@ -88,8 +88,9 @@ def get_all_samples(fq_sample_mapping_table, cohort_sample_names_file, sample_ma
   
   cohort.sort()
 
-  with open(sample_map_outfile, 'w') as outfile:
-    outfile.write(csv_str)
+  if sample_map_outfile is not None:
+    with open(sample_map_outfile, 'w') as outfile:
+      outfile.write(csv_str)
 
   return cohort
 
