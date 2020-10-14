@@ -1,4 +1,5 @@
 {
+  "RawArrayCohortExtract.cohort_sample_names_file": "{TODO}",
   "RawArrayCohortExtract.fq_cohort_mapping_table": "spec-ops-aou.aou_synthetic_100k.cohort_10_of_100k_sample_list",
   "RawArrayCohortExtract.fq_destination_dataset": "spec-ops-aou.temp_tables",
   

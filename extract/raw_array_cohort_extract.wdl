@@ -19,6 +19,7 @@ workflow RawArrayCohortExtract {
         String fq_destination_dataset
         String query_project
         String fq_cohort_mapping_table
+        File cohort_sample_names_file
         Int ttl = 24
         
         String output_file_base_name
@@ -31,7 +32,8 @@ workflow RawArrayCohortExtract {
             max_tables                = max_tables,
             fq_destination_dataset    = fq_destination_dataset,
             query_project             = query_project,
-            fq_cohort_mapping_table   = fq_cohort_mapping_table,
+            fq_sample_mapping_table   = fq_cohort_mapping_table,
+            cohort_sample_names_file  = cohort_sample_names_file,
             ttl                       = ttl,
             number_of_partitions      = number_of_partitions,
             probes_per_partition      = probes_per_partition
@@ -84,7 +86,8 @@ task CreateExtractTable {
         Int max_tables
         String fq_destination_dataset
         String query_project
-        String fq_cohort_mapping_table
+        String fq_sample_mapping_table
+        File cohort_sample_names_file
         Int ttl
         Int number_of_partitions
         Int probes_per_partition
@@ -104,7 +107,8 @@ task CreateExtractTable {
           --max_tables ~{max_tables} \
           --fq_destination_table ${export_table} \
           --query_project ~{query_project} \
-          --fq_cohort_sample_mapping_table ~{fq_cohort_mapping_table} \
+          --fq_sample_mapping_table ~{fq_sample_mapping_table} \
+          --cohort_sample_names_file ~{cohort_sample_names_file} \
           --ttl ~{ttl} \
           --number_of_partitions ~{number_of_partitions} \
           --probes_per_partition ~{probes_per_partition}
@@ -204,7 +208,7 @@ task ExtractTask {
    meta {
      volatile: true
    }
- 
+
    input {
      Array[File] input_vcfs
      Array[File] input_vcfs_indexes
@@ -233,6 +237,6 @@ task ExtractTask {
      File output_vcf_index = "~{output_vcf_name}.tbi"
    }
  }
- 
+
 
 
