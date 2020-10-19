@@ -1,10 +1,11 @@
 GATK_HOME=~/projects/gatk
 
 project_id="spec-ops-aou"
-probe_info_table="spec-ops-aou.aou_synthetic_100k.probe_info"
-sample_table="spec-ops-aou.aou_synthetic_100k.cohort_10_of_100k_sample_list"
-cohort_table="spec-ops-aou.temp_tables.demo_10_cohort_extract"
-output_vcf="demo_10.aou.vcf.gz"
+probe_info_table="spec-ops-aou.ah_aou_test.probe_info"
+sample_table="spec-ops-aou.ah_aou_test.cohort_1"
+cohort_table="spec-ops-aou.ah_aou_test.extract_1"
+qc_metrics_table="spec-ops-aou.ah_aou_test.metrics_table"
+output_vcf="demo_1.aou.vcf.gz"
 
 # local versions for faster testing iterations
 # TODO: gs:// based reference is hundreds of times slower than local... doesn't feel right
@@ -31,6 +32,7 @@ $GATK_HOME/gatk --java-options "-Xmx4g $DEBUG_CLAUSE" ArrayExtractCohort \
   -O "${output_vcf}" \
     ${PROBE_INFO_CLAUSE} \
   --cohort-sample-table "${sample_table}" \
+  --qc-metrics-table "${qc_metrics_table}" \
   --use-compressed-data "false" \
   --cohort-extract-table "${cohort_table}" \
   --local-sort-max-records-in-ram "${local_sort_max_records_in_ram}" \
