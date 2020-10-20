@@ -31,24 +31,19 @@ Copy the resulting tsv files to a google bucket for upload
 
 	gsutil cp <output-of-gatk-command>*.tsv gs://broad-dsp-spec-ops/scratch/import/
 
-Both of these steps (the gatk tool and the copy of the files) can be accomplished by running the CreateArrayImportTsvs.wdl script.
+Both of these steps (the gatk tool and the copy of the files) can be accomplished by running the `ImportArrays.wdl` script which is in the GATK repo: https://github.com/broadinstitute/gatk/blob/ah_var_store/scripts/variantstore_wdl/ImportArrays.wdl.
 
-Run the bq ingest script for array data. This script will import the sample and raw array data files for the table specified and then move the files to a "done" subdirectory.
-
-	./ingest/bq_ingest_arrays.sh <project-id> <dataset-name> <storage-location> <table-number>
-	
-For example:
-
-	./ingest/bq_ingest_arrays.sh spec-ops-aou aou_arrays_test gs://broad-dsp-spec-ops/scratch/import 2
+That WDL will automatically run the bq ingest script for array data. This script will either import the sample and raw array data files for the table specified, or create the appropriate tables but leave the files in the bucket without loading them.
+This is to enable a future use case of loading the data into BigQuery using Google Data Transfer, although this is not yet implemented.
 
 _**WARNING**_ 
 
-It is important that new files are not being added to this directory during this process or they might be moved to the done directory without being processed. It is important not to reload the same file more than once or you will get duplicate entries in the database. 
+It is important that new files are not being added to this directory during this process. It is important not to reload the same file more than once or you will get duplicate entries in the database. 
 
 
 ## Extract
 
-Here is a sample query you can use to create a cohort table for the samples you want to extract. (Soon there will be an option to pass this as a tsv).
+Here is a sample query you can use to create a cohort table for the samples you want to extract. (Or you can pass this as a tsv).
 
 	CREATE OR REPLACE TABLE `spec-ops-aou.aou_preprod.cohort_20` AS
 		SELECT sample_id, sample_name FROM
@@ -60,7 +55,8 @@ Here is a sample query you can use to create a cohort table for the samples you 
 		)
 		
 
-Once you have created a cohort table, you can run the `extract/raw_array_cohort_extract.wdl` with the `extract/raw_array_cohort_extract.aou_demo_10.cloud.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+Once you have created a cohort table, you can run the `raw_array_cohort_extract.wdl` with the `raw_array_cohort_extract_inputs.json` file as an example of the inputs needed. This will create a temp table with the cohort data and create an output vcf for each shard in the export.
+The WDL and example json are both in the GATK repo: https://github.com/broadinstitute/gatk/blob/ah_var_store/scripts/variantstore_wdl/raw_array_cohort_extract.wdl and https://github.com/broadinstitute/gatk/blob/ah_var_store/scripts/variantstore_wdl/raw_array_cohort_extract_inputs.json
 
 
 ## Issues
