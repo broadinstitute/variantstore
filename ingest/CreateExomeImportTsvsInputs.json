@@ -1,7 +1,0 @@
-{
-"CreateExomeImportTsvs.gatk_override":"gs://broad-dsp-spec-ops/scratch/andrea/gatk-array-ingest.jar",
-"CreateExomeImportTsvs.input_vcf":"gs://fc-5a36eac1-8a2f-4d87-a781-a1cb168b37ee/4fd92ee2-3e06-4174-aadc-9fae771d5596/ReblockGVCF/b79eea52-b63b-4df7-abce-405b48bbd16d/call-Reblock/0000-0008-4106.v2.346130f7-0341-4fd0-9f93-ba122088238d.vcf.gz",
-"CreateExomeImportTsvs.interval_list":"gs://broad-dsp-spec-ops/scratch/bigquery-jointcalling/interval_lists/whole_exome_illumina_coding_v1.Homo_sapiens_assembly38.targets.150_padding.interval_list",
-"CreateExomeImportTsvs.sampleMap":"gs://broad-dsp-spec-ops/scratch/andrea/exomes/dalio/sampleMapping.csv",
-"CreateExomeImportTsvs.output_directory":"gs://broad-dsp-spec-ops/scratch/andrea/exomes/dalio/data"
-}
